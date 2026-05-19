@@ -21,6 +21,31 @@ typedef struct {
 #define GPIO_BANK01_INPUT_DATA ((volatile uint32_t *)0x01e26020u)
 #define PTT_BUTTON_GPIO_MASK (1u << 7)
 
+#define BUTTON_I2C_DEVICE_ADDRESS 0x44u
+#define BUTTON_KEY_EVENT_REGISTER 0x10u
+#define BUTTON_KEY_FIFO_REGISTER 0x0bu
+#define BUTTON_RAW_KEY_MASK 0x7fu
+#define BUTTON_RELEASE_FLAG 0x80u
+#define BUTTON_KEY_MAP_MAX_RAW 0x70u
+
+static const uint8_t button_key_map[BUTTON_KEY_MAP_MAX_RAW + 1] = {
+    0x14, 0x11, 0x0e, 0x0b, 0x04, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x0a, 0x12, 0x0f, 0x0c, 0x09, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x15, 0x13, 0x10, 0x0d, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x03, 0x02, 0x01, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x08, 0x07, 0x06, 0x05, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff
+};
+
 static const BootDisplayLayout *DisplayGetCurrentLayout(void)
 {
     return &BOOT_DISPLAY_LAYOUTS[*BOOT_DISPLAY_MODE];
@@ -100,12 +125,79 @@ void DisplayRenderText(char *text)
 
 bool ButtonCheckProgrammingModePressed(void)
 {
-    uint32_t dwGpioInData01 = *GPIO_BANK01_INPUT_DATA;
-    uint32_t dwOneKeyPressed = BootKeyCheckProgramModeKey();
+    uint32_t gpio_bank01_input = *GPIO_BANK01_INPUT_DATA;
+    uint32_t program_key_pressed = BootKeyCheckProgramModeKey();
 
-    if (((dwGpioInData01 & PTT_BUTTON_GPIO_MASK) == 0) && (dwOneKeyPressed == 1)) {
+    if (((gpio_bank01_input & PTT_BUTTON_GPIO_MASK) == 0) && (program_key_pressed == 1)) {
         return 1;
     }
 
     return 0;
+}
+
+uint8_t ButtonDecodeRawKey(uint8_t raw_key)
+{
+    raw_key &= BUTTON_RAW_KEY_MASK;
+    if (raw_key > BUTTON_KEY_MAP_MAX_RAW) {
+        return BUTTON_KEY_INVALID;
+    }
+
+    return button_key_map[raw_key];
+}
+
+bool ButtonReadKeyEvent(uint8_t *key_code_out, bool *released_out)
+{
+    uint8_t raw_event = 0;
+    uint8_t key_code;
+
+    if (I2CReadRegisterBytes(BUTTON_I2C_DEVICE_ADDRESS, BUTTON_KEY_EVENT_REGISTER, &raw_event,
+                             1) != 0) {
+        return false;
+    }
+
+    key_code = ButtonDecodeRawKey(raw_event);
+    if (key_code == BUTTON_KEY_INVALID) {
+        return false;
+    }
+
+    if (key_code_out != NULL) {
+        *key_code_out = key_code;
+    }
+    if (released_out != NULL) {
+        *released_out = ((raw_event & BUTTON_RELEASE_FLAG) != 0);
+    }
+
+    return true;
+}
+
+uint8_t ButtonReadPressedKeys(uint8_t *key_codes, uint8_t max_key_codes)
+{
+    uint8_t raw_keys[BUTTON_MAX_PRESSED_KEYS];
+    uint8_t raw_key_index;
+    uint8_t key_code_count = 0;
+
+    if ((key_codes == NULL) || (max_key_codes == 0)) {
+        return 0;
+    }
+
+    if (I2CReadRegisterBytes(BUTTON_I2C_DEVICE_ADDRESS, BUTTON_KEY_FIFO_REGISTER, raw_keys,
+                             BUTTON_MAX_PRESSED_KEYS) != 0) {
+        return 0;
+    }
+
+    for (raw_key_index = 0; raw_key_index < BUTTON_MAX_PRESSED_KEYS; raw_key_index++) {
+        uint8_t key_code = ButtonDecodeRawKey(raw_keys[raw_key_index]);
+
+        if (key_code == BUTTON_KEY_INVALID) {
+            continue;
+        }
+
+        key_codes[key_code_count] = key_code;
+        key_code_count++;
+        if (key_code_count == max_key_codes) {
+            break;
+        }
+    }
+
+    return key_code_count;
 }

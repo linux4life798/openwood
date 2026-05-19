@@ -16,6 +16,9 @@
 .global BootKeyCheckProgramModeKey
 .equ BootKeyCheckProgramModeKey, 0x6000c8ec
 
+.global I2CReadRegisterBytes
+.equ I2CReadRegisterBytes, 0x6000c090
+
 .global LcdControllerSetDisplayEnableFlag
 .equ LcdControllerSetDisplayEnableFlag, 0x6000d7b0
 .global DisplaySelectBootLayoutAndResetTextState

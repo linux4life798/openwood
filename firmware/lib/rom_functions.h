@@ -66,12 +66,21 @@ void TimerDelayTicks(uint32_t ticks);
 void TimerDelayMilliseconds(uint32_t milliseconds);
 
 /**
- * Checks the IC730 key-scanner FIFO for the boot ROM's programming-mode key.
+ * Checks the key-scanner FIFO for the boot ROM's programming-mode key.
  *
  * Returns 1 when raw key code 3 is observed, 0 otherwise. The caller must
- * initialize the display/IC730 path first. This does not check PTT.
+ * initialize the display/key-scanner path first. This does not check PTT.
  */
 uint32_t BootKeyCheckProgramModeKey(void);
+
+/**
+ * Reads bytes from one key-scanner I2C register through the boot ROM I2C0 helper.
+ *
+ * Returns 0 on success. The boot ROM rejects NULL destinations and lengths
+ * above 0x40 bytes.
+ */
+int32_t I2CReadRegisterBytes(uint8_t device_address, uint8_t register_id, uint8_t *dst,
+                             uint32_t length);
 
 /**
  * Fills the active LCD panel with one 16-bit pixel value.
@@ -120,7 +129,7 @@ void DisplayInitializePanelAndClear(void);
 void SystemApplyPinmuxTables(void);
 
 /**
- * Initializes IC730 display/key sideband support over I2C0.
+ * Initializes display/key sideband support over I2C0.
  *
  * Assumes timer3 is running and I2C0/pinmux are usable.
  */
