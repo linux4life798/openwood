@@ -125,14 +125,20 @@ void DisplayRenderText(char *text)
 
 bool ButtonCheckProgrammingModePressed(void)
 {
-    uint32_t gpio_bank01_input = *GPIO_BANK01_INPUT_DATA;
     uint32_t program_key_pressed = BootKeyCheckProgramModeKey();
 
-    if (((gpio_bank01_input & PTT_BUTTON_GPIO_MASK) == 0) && (program_key_pressed == 1)) {
+    if (ButtonCheckPttPressed() && (program_key_pressed == 1)) {
         return 1;
     }
 
     return 0;
+}
+
+bool ButtonCheckPttPressed(void)
+{
+    uint32_t gpio_bank01_input = *GPIO_BANK01_INPUT_DATA;
+
+    return ((gpio_bank01_input & PTT_BUTTON_GPIO_MASK) == 0);
 }
 
 uint8_t ButtonDecodeRawKey(uint8_t raw_key)

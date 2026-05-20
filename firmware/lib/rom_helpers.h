@@ -27,6 +27,13 @@ void DisplayRenderText(char *text);
 bool ButtonCheckProgrammingModePressed(void);
 
 /**
+ * Returns true when the PTT button GPIO input is active.
+ *
+ * The PTT GPIO is active-low, so a cleared input bit means pressed.
+ */
+bool ButtonCheckPttPressed(void);
+
+/**
  * Decodes a raw key byte to a logical key code.
  *
  * The low seven bits are decoded through the key map. Returns
