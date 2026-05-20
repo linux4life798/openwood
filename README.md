@@ -4,10 +4,10 @@ Tools and information for modifying firmware on Kenwood TH-D74 and similar
 radios.
 
 The openwood python tool can fully update and recover your Kenwood radio
-firmware from custom firmware experiments to the official update exe bundle.
+using official update exe bindles or flash arbitrary custom firmware.
 The updater functions on all major OS platforms, GNU/Linux, macOS, and Windows.
 
-Checkout the stress test demo videos showing that you cannot brick your radio:
+Checkout the stress test videos showing that it is hard to brick your radio:
 
 Wiping main firmware section | Flashing faulty firmware
 ---------------------------- | ------------------------
