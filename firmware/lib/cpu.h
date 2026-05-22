@@ -113,6 +113,10 @@ void ExceptionHandleReservedVector(volatile Arm9ExceptionContext *context);
 void ExceptionHandleIrq(volatile Arm9ExceptionContext *context);
 void ExceptionHandleFiq(volatile Arm9ExceptionContext *context);
 
+/* The compiler builtin trap will remove "unreachable" code after this call. */
+#define TRAP_NO_RETURN() __builtin_trap()
+/* The asm volatile will not remove code found after the call. */
+#define TRAP_YES_RETURN() asm volatile("udf #0" ::: "memory")
 
 /**
  * Reads the current exception mode's saved program status register.
