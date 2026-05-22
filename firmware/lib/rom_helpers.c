@@ -19,6 +19,7 @@ typedef struct {
 #define BOOT_DISPLAY_LAYOUTS ((const BootDisplayLayout *)0x6000db80u)
 
 #define GPIO_BANK01_INPUT_DATA ((volatile uint32_t *)0x01e26020u)
+#define POWER_BUTTON_GPIO_MASK (1u << 1)
 #define PTT_BUTTON_GPIO_MASK (1u << 7)
 
 #define BUTTON_I2C_DEVICE_ADDRESS 0x44u
@@ -139,6 +140,13 @@ bool ButtonCheckPttPressed(void)
     uint32_t gpio_bank01_input = *GPIO_BANK01_INPUT_DATA;
 
     return ((gpio_bank01_input & PTT_BUTTON_GPIO_MASK) == 0);
+}
+
+bool ButtonCheckPowerPressed(void)
+{
+    uint32_t gpio_bank01_input = *GPIO_BANK01_INPUT_DATA;
+
+    return ((gpio_bank01_input & POWER_BUTTON_GPIO_MASK) != 0);
 }
 
 uint8_t ButtonDecodeRawKey(uint8_t raw_key)

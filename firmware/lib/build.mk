@@ -7,3 +7,4 @@ lib-objs-y += cpu.o
 lib-objs-y += rom_functions.o
 lib-objs-y += rom_helpers.o
 lib-objs-y += utils.o
+lib-objs-y += system.o

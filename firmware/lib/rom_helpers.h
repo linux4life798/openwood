@@ -34,6 +34,13 @@ bool ButtonCheckProgrammingModePressed(void);
 bool ButtonCheckPttPressed(void);
 
 /**
+ * Returns true when the Power button GPIO input is active.
+ *
+ * The PWR GPIO is active-high, so a set input bit means pressed.
+ */
+bool ButtonCheckPowerPressed(void);
+
+/**
  * Decodes a raw key byte to a logical key code.
  *
  * The low seven bits are decoded through the key map. Returns
