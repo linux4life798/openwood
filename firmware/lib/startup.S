@@ -41,11 +41,6 @@ clear_bss:
     b clear_bss
 
 bss_done:
-    @ Low vectors are already present at the image base. This can be enabled
-    @ later if we want the ARM9 high-vector address at 0xffff0000 instead.
-    @ bl Arm9HighVectorsConfigureNoMMU
     bl main
-
-hang:
-    @ main should not return.
-    b hang
+    @ r0 is the exit code.
+    bl panic_main_exited

@@ -59,3 +59,18 @@ void panic_exception(const volatile Arm9ExceptionContext *context)
 
     panic(line);
 }
+
+/**
+ * Called from startup.S if main exits.
+ */
+void panic_main_exited(int exit_code) __attribute__((noreturn));
+void panic_main_exited(int exit_code)
+{
+    char msg[] = "main exit 0x??";
+
+    /* Display is only large enough for 2 hex digits. */
+    char small_code = exit_code & 0xff;
+    UtilsFormatHexByte(&msg[sizeof(msg) - 1 - 2], small_code);
+
+    panic(msg);
+}
