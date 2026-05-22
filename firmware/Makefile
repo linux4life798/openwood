@@ -5,8 +5,11 @@ EXAMPLES := \
 	hello-world \
 	jump-fldm-loader \
 	main-exit \
-	mmu-test \
-	serial
+	reboot \
+	serial \
+	shutdown
+
+# mmu-test is not included because it is not tracked/CI-enabled yet.
 
 .PHONY: all clean $(EXAMPLES) $(addprefix clean-,$(EXAMPLES))
 

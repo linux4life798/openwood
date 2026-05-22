@@ -32,6 +32,8 @@ jobs:
           make -C firmware/hello-world
           make -C firmware/jump-fldm-loader
           make -C firmware/main-exit
+          make -C firmware/reboot
+          make -C firmware/shutdown
           # make -C firmware/mmu-test
 
       - uses: actions/upload-artifact@v7
@@ -46,3 +48,5 @@ jobs:
             firmware/hello-world/firmware.*
             firmware/jump-fldm-loader/firmware.*
             firmware/main-exit/firmware.*
+            firmware/reboot/firmware.*
+            firmware/shutdown/firmware.*
