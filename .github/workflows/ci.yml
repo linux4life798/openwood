@@ -27,16 +27,22 @@ jobs:
       - name: Build firmware images
         run: |
           make -C firmware/buttons
+          make -C firmware/exception-recover
           make -C firmware/exceptions
           make -C firmware/hello-world
           make -C firmware/jump-fldm-loader
+          make -C firmware/main-exit
+          # make -C firmware/mmu-test
 
       - uses: actions/upload-artifact@v7
         with:
           name: firmware-images
           if-no-files-found: error
+          # firmware/mmu-test is disabled with the build above.
           path: |
             firmware/buttons/firmware.*
+            firmware/exception-recover/firmware.*
             firmware/exceptions/firmware.*
             firmware/hello-world/firmware.*
             firmware/jump-fldm-loader/firmware.*
+            firmware/main-exit/firmware.*
