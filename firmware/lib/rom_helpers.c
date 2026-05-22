@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "gpio.h"
 #include "rom_helpers.h"
 #include "rom_functions.h"
 
@@ -17,10 +18,6 @@ typedef struct {
 
 #define BOOT_DISPLAY_MODE ((volatile uint8_t *)0xffff01cbu)
 #define BOOT_DISPLAY_LAYOUTS ((const BootDisplayLayout *)0x6000db80u)
-
-#define GPIO_BANK01_INPUT_DATA ((volatile uint32_t *)0x01e26020u)
-#define POWER_BUTTON_GPIO_MASK (1u << 1)
-#define PTT_BUTTON_GPIO_MASK (1u << 7)
 
 #define BUTTON_I2C_DEVICE_ADDRESS 0x44u
 #define BUTTON_KEY_EVENT_REGISTER 0x10u
@@ -137,16 +134,12 @@ bool ButtonCheckProgrammingModePressed(void)
 
 bool ButtonCheckPttPressed(void)
 {
-    uint32_t gpio_bank01_input = *GPIO_BANK01_INPUT_DATA;
-
-    return ((gpio_bank01_input & PTT_BUTTON_GPIO_MASK) == 0);
+    return !GPIOReadPin(ptt_button_gpio);
 }
 
 bool ButtonCheckPowerPressed(void)
 {
-    uint32_t gpio_bank01_input = *GPIO_BANK01_INPUT_DATA;
-
-    return ((gpio_bank01_input & POWER_BUTTON_GPIO_MASK) != 0);
+    return GPIOReadPin(power_button_gpio);
 }
 
 uint8_t ButtonDecodeRawKey(uint8_t raw_key)

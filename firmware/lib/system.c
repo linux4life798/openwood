@@ -1,24 +1,101 @@
 #include <stdint.h>
 
-#define REG32(addr) (*(volatile uint32_t *)(addr))
+#include "gpio.h"
+#include "system.h"
+
+#define SYSCFG0_PINMUX16 0x01c14160u
+#define SYSCFG0_CFGCHIP0 0x01c1417cu
+#define CFGCHIP0_PLL_MASTER_LOCK (1u << 4)
+
+#define PLLC0_RSCTRL 0x01c110e8u
+#define PLLC_RSCTRL_KEY_MASK 0x0000ffffu
+#define PLLC_RSCTRL_KEY_UNLOCK 0x00005a69u
+#define PLLC_RSCTRL_SWRST_RELEASED (1u << 16)
+
+#define PINMUX16_GPIO7_12_MASK (0x0fu << 20)
+#define PINMUX16_GPIO7_12_GPIO (0x08u << 20)
+
+static const GPIOPin power_hold_gpio = {
+    .bank = 7,
+    .pin = 12,
+};
+
+static volatile uint32_t *MMIORegister32(uint32_t address)
+{
+    return (volatile uint32_t *)address;
+}
+
+static uint32_t MMIORead32(uint32_t address)
+{
+    return *MMIORegister32(address);
+}
+
+static void MMIOWrite32(uint32_t address, uint32_t value)
+{
+    *MMIORegister32(address) = value;
+}
+
+static void MMIOClearBits32(uint32_t address, uint32_t mask)
+{
+    MMIOWrite32(address, MMIORead32(address) & ~mask);
+}
+
+static void MMIOMaskedWrite32(uint32_t address, uint32_t mask, uint32_t value)
+{
+    MMIOWrite32(address, (MMIORead32(address) & ~mask) | (value & mask));
+}
+
+static void PinmuxSelectFunction(uint32_t pinmuxRegister, uint32_t fieldMask,
+                                 uint32_t functionValue)
+{
+    MMIOMaskedWrite32(pinmuxRegister, fieldMask, functionValue);
+}
+
+static void PLLC0UnlockRegisters(void)
+{
+    /* CFGCHIP0.PLL_MASTER_LOCK must be clear before PLLC0 MMR writes stick. */
+    MMIOClearBits32(SYSCFG0_CFGCHIP0, CFGCHIP0_PLL_MASTER_LOCK);
+}
+
+static void PLLC0UnlockResetControl(void)
+{
+    MMIOMaskedWrite32(PLLC0_RSCTRL, PLLC_RSCTRL_KEY_MASK, PLLC_RSCTRL_KEY_UNLOCK);
+}
+
+static void PLLC0AssertSoftwareReset(void)
+{
+    PLLC0UnlockRegisters();
+    PLLC0UnlockResetControl();
+
+    /* RSCTRL.SWRST is active-low: clearing it requests a software reset. */
+    MMIOClearBits32(PLLC0_RSCTRL, PLLC_RSCTRL_SWRST_RELEASED);
+}
+
+static void PowerHoldRouteToGpio(void)
+{
+    PinmuxSelectFunction(SYSCFG0_PINMUX16, PINMUX16_GPIO7_12_MASK, PINMUX16_GPIO7_12_GPIO);
+}
+
+static void PowerHoldDriveLow(void)
+{
+    GPIOConfigureOutput(power_hold_gpio);
+    GPIODriveLow(power_hold_gpio);
+}
 
 void SystemReboot(void)
 {
-    REG32(0x01c1417c) &= ~0x10u;                         // unlock PLLC0 MMRs via CFGCHIP0
-    REG32(0x01c110e8) = (REG32(0x01c110e8) & 0xffff0000u) | 0x5a69u;
-    REG32(0x01c110e8) &= ~0x00010000u;                   // RSCTRL.SWRST = 0
+    PLLC0AssertSoftwareReset();
+
+    for (;;) {
+    }
 }
 
 void SystemShutdown(void)
 {
-    /* Route the 40CS pin as GPIO7_12. */
-    REG32(0x01c14160) = (REG32(0x01c14160) & ~0x00f00000u) | 0x00800000u;
+    PowerHoldRouteToGpio();
 
-    /* GPIO DIR bit: 0 = output on OMAP-L138. */
-    REG32(0x01e26088) &= ~0x10000000u;
-
-    /* Drive 40CS low; this disables IC584 and kills 40C. */
-    REG32(0x01e26094) = 0x10000000u;
+    /* 40CS low disables IC584, removes the 40C rail, and powers off the radio. */
+    PowerHoldDriveLow();
 
     for (;;) {
     }

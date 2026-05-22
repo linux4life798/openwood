@@ -4,6 +4,7 @@ lib-objs-y += startup.o
 lib-objs-y += exception_handlers.o
 lib-objs-y += panic.o
 lib-objs-y += cpu.o
+lib-objs-y += gpio.o
 lib-objs-y += rom_functions.o
 lib-objs-y += rom_helpers.o
 lib-objs-y += utils.o
