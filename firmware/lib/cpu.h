@@ -119,6 +119,11 @@ void ExceptionHandleFiq(volatile Arm9ExceptionContext *context);
 #define TRAP_YES_RETURN() asm volatile("udf #0" ::: "memory")
 
 /**
+ * Initializes the CPU.
+ */
+void CPUInitialize(void);
+
+/**
  * Reads the current exception mode's saved program status register.
  */
 Arm9ProgramStatus Arm9SavedProgramStatusRead(void);

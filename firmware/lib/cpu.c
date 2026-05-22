@@ -2,6 +2,13 @@
 
 extern const Arm9VectorTable __vector_table;
 
+void CPUInitialize(void)
+{
+    /* Setup the exception vectors and disable the MMU and caches. */
+    Arm9HighVectorsConfigureNoMMU();
+}
+
+
 uint32_t Arm9ControlRegisterRead(void)
 {
     uint32_t value;

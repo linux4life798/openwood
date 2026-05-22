@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "cpu.h"
 #include "rom_functions.h"
 #include "rom_helpers.h"
 #include "utils.h"
@@ -37,7 +38,9 @@ int main(void)
     uint8_t key_code;
     bool released;
 
+    CPUInitialize();
     InitializePeripherals();
+
     DisplayRenderText("Press keys");
     TimerDelayMilliseconds(500);
 

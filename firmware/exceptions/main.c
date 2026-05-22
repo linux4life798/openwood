@@ -4,8 +4,8 @@
 
 int main(void)
 {
+    CPUInitialize();
     InitializePeripherals();
-    Arm9HighVectorsConfigureNoMMU();
 
     DisplayRenderText("Trigger UNDF");
     TimerDelayMilliseconds(1000);
