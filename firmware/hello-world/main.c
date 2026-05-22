@@ -6,6 +6,7 @@
 int main(void)
 {
     InitializePeripherals();
+    Arm9HighVectorsConfigureNoMMU();
     DisplayRenderText("Hello World!");
 
     for (;;)
