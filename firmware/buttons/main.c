@@ -33,6 +33,10 @@ static void DisplayKeyEventExample(uint8_t key_code, bool released)
     DisplayRenderText(line);
 }
 
+/*
+ * Show a prompt, then check for up to four keys that are currently held.
+ * When a key is pressed or released, show that event briefly.
+ */
 int main(void)
 {
     uint8_t key_code;

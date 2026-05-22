@@ -11,6 +11,10 @@ void ExceptionHandleUndefinedInstruction(volatile Arm9ExceptionContext *)
     TimerDelayMilliseconds(1000);
 }
 
+/*
+ * Trigger an undefined instruction, show the custom handler
+ * message, return from the handler, then display "After trap" and idle.
+ */
 int main(void)
 {
     CPUInitialize();
