@@ -29,3 +29,13 @@ jobs:
           make -C firmware/exceptions
           make -C firmware/hello-world
           make -C firmware/jump-fldm-loader
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: firmware-images
+          if-no-files-found: error
+          path: |
+            firmware/buttons/firmware.*
+            firmware/exceptions/firmware.*
+            firmware/hello-world/firmware.*
+            firmware/jump-fldm-loader/firmware.*
