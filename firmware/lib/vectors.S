@@ -1,9 +1,13 @@
+#include "cpu.h"
+
 .section .firmware_header.vectors, "ax"
 .arm
 
 .global __vector_table
 .type __vector_table, %object
 
+@ ARM vectors are a fixed sequence of eight instructions. Use PC-relative loads
+@ so each vector can jump to a full 32-bit handler address stored below.
 __vector_table:
     ldr pc, reset_handler
     ldr pc, undefined_instruction_handler
@@ -14,6 +18,7 @@ __vector_table:
     ldr pc, irq_handler
     ldr pc, fiq_handler
 
+@ Literal handler addresses consumed by the ldr pc instructions above.
 reset_handler:
     .word ResetHandler
 undefined_instruction_handler:
@@ -32,3 +37,6 @@ fiq_handler:
     .word FiqHandler
 
 .size __vector_table, . - __vector_table
+.if (. - __vector_table) != ARM9_VECTOR_TABLE_SIZE
+.error "ARM9 vector table size mismatch"
+.endif
