@@ -26,13 +26,19 @@
 #define ARM9_VECTOR_COUNT                            8u
 #define ARM9_VECTOR_TABLE_SIZE                       0x40
 #define ARM9_EXCEPTION_STACK_SIZE                    1024
-#define ARM9_EXCEPTION_PC_OFFSET_UNDEFINED           4
-#define ARM9_EXCEPTION_PC_OFFSET_SWI                 4
-#define ARM9_EXCEPTION_PC_OFFSET_PREFETCH_ABORT      4
-#define ARM9_EXCEPTION_PC_OFFSET_DATA_ABORT          8
-#define ARM9_EXCEPTION_PC_OFFSET_RESERVED            0
-#define ARM9_EXCEPTION_PC_OFFSET_IRQ                 4
-#define ARM9_EXCEPTION_PC_OFFSET_FIQ                 4
+
+/*
+ * Offsets from GCC's interrupt-wrapper return address to the instruction that
+ * caused or was interrupted by the exception. GCC pre-adjusts LR for IRQ, FIQ,
+ * and ABORT handlers before C code runs.
+ */
+#define ARM9_EXCEPTION_RETURN_OFFSET_UNDEFINED       4u
+#define ARM9_EXCEPTION_RETURN_OFFSET_SWI             4u
+#define ARM9_EXCEPTION_RETURN_OFFSET_PREFETCH_ABORT  0u
+#define ARM9_EXCEPTION_RETURN_OFFSET_DATA_ABORT      4u
+#define ARM9_EXCEPTION_RETURN_OFFSET_RESERVED        0u
+#define ARM9_EXCEPTION_RETURN_OFFSET_IRQ             0u
+#define ARM9_EXCEPTION_RETURN_OFFSET_FIQ             0u
 
 #ifndef __ASSEMBLER__
 
@@ -54,31 +60,64 @@ typedef enum {
     ARM9_EXCEPTION_KIND_FIQ,
 } Arm9ExceptionKind;
 
+typedef enum {
+    ARM9_PROGRAM_MODE_USER = ARM9_CPSR_MODE_USER,
+    ARM9_PROGRAM_MODE_FIQ = ARM9_CPSR_MODE_FIQ,
+    ARM9_PROGRAM_MODE_IRQ = ARM9_CPSR_MODE_IRQ,
+    ARM9_PROGRAM_MODE_SUPERVISOR = ARM9_CPSR_MODE_SUPERVISOR,
+    ARM9_PROGRAM_MODE_ABORT = ARM9_CPSR_MODE_ABORT,
+    ARM9_PROGRAM_MODE_UNDEFINED = ARM9_CPSR_MODE_UNDEFINED,
+    ARM9_PROGRAM_MODE_SYSTEM = ARM9_CPSR_MODE_SYSTEM,
+} Arm9ProgramMode;
+
+typedef union {
+    uint32_t raw;
+    struct {
+        Arm9ProgramMode mode : 5;
+        uint32_t thumb_state : 1;
+        uint32_t fiq_disabled : 1;
+        uint32_t irq_disabled : 1;
+        uint32_t reserved0 : 16;
+        uint32_t jazelle_state : 1;
+        uint32_t reserved1 : 2;
+        uint32_t cumulative_saturation : 1;
+        uint32_t overflow : 1;
+        uint32_t carry : 1;
+        uint32_t zero : 1;
+        uint32_t negative : 1;
+    } bits;
+} Arm9ProgramStatus;
+
 typedef struct {
     Arm9ExceptionKind kind;
     uint32_t fault_pc;
-    uint32_t saved_cpsr;
+    Arm9ProgramStatus saved_cpsr;
     uint32_t fault_status;
     uint32_t fault_address;
 } Arm9ExceptionContext;
 
 _Static_assert(sizeof(Arm9VectorTable) == ARM9_VECTOR_TABLE_SIZE,
                "ARM9 vector table size mismatch");
-
-extern const Arm9VectorTable __vector_table;
-extern volatile Arm9ExceptionContext last_exception_context;
+_Static_assert(sizeof(Arm9ProgramStatus) == sizeof(uint32_t),
+               "ARM9 program status size mismatch");
 
 /**
  * Default handlers record last_exception_context and panic. Applications can
  * override any handler by defining the same symbol.
  */
-void ExceptionHandleUndefinedInstruction(uint32_t fault_pc, uint32_t saved_cpsr);
-void ExceptionHandleSoftwareInterrupt(uint32_t fault_pc, uint32_t saved_cpsr);
-void ExceptionHandlePrefetchAbort(uint32_t fault_pc, uint32_t saved_cpsr);
-void ExceptionHandleDataAbort(uint32_t fault_pc, uint32_t saved_cpsr);
-void ExceptionHandleReservedVector(uint32_t fault_pc, uint32_t saved_cpsr);
-void ExceptionHandleIrq(uint32_t fault_pc, uint32_t saved_cpsr);
-void ExceptionHandleFiq(uint32_t fault_pc, uint32_t saved_cpsr);
+void ExceptionHandleUndefinedInstruction(volatile Arm9ExceptionContext *context);
+void ExceptionHandleSoftwareInterrupt(volatile Arm9ExceptionContext *context);
+void ExceptionHandlePrefetchAbort(volatile Arm9ExceptionContext *context);
+void ExceptionHandleDataAbort(volatile Arm9ExceptionContext *context);
+void ExceptionHandleReservedVector(volatile Arm9ExceptionContext *context);
+void ExceptionHandleIrq(volatile Arm9ExceptionContext *context);
+void ExceptionHandleFiq(volatile Arm9ExceptionContext *context);
+
+
+/**
+ * Reads the current exception mode's saved program status register.
+ */
+Arm9ProgramStatus Arm9SavedProgramStatusRead(void);
 
 /**
  * Reads the ARM9 CP15 control register (c1).

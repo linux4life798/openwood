@@ -1,5 +1,7 @@
 #include "cpu.h"
 
+extern const Arm9VectorTable __vector_table;
+
 uint32_t Arm9ControlRegisterRead(void)
 {
     uint32_t value;
@@ -76,6 +78,15 @@ void Arm9MMUDisable(void)
 
     control &= ~ARM9_CP15_CONTROL_MMU_ENABLE;
     Arm9ControlRegisterWrite(control);
+}
+
+Arm9ProgramStatus Arm9SavedProgramStatusRead(void)
+{
+    Arm9ProgramStatus status;
+
+    asm volatile("mrs %0, spsr" : "=r"(status.raw));
+
+    return status;
 }
 
 static void Arm9HighVectorTableCopy(void)

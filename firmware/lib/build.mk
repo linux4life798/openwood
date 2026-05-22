@@ -1,7 +1,6 @@
 lib-objs-y += vectors.o
 lib-objs-y += header.o
 lib-objs-y += startup.o
-lib-objs-y += exception.o
 lib-objs-y += exception_handlers.o
 lib-objs-y += panic.o
 lib-objs-y += cpu.o
