@@ -1,0 +1,7 @@
+__pycache__/
+.venv/
+*.o
+*.elf
+*.map
+*.a
+*.bin
