@@ -39,9 +39,6 @@ static void DisplayKeyEventExample(uint8_t key_code, bool released)
  */
 int main(void)
 {
-    uint8_t key_code;
-    bool released;
-
     CPUInitialize();
     InitializePeripherals();
 
@@ -51,6 +48,8 @@ int main(void)
     while (1) {
         DisplayPressedKeysExample();
 
+        uint8_t key_code;
+        bool released;
         if (ButtonReadKeyEvent(&key_code, &released)) {
             DisplayKeyEventExample(key_code, released);
             TimerDelayMilliseconds(300);
