@@ -2,6 +2,7 @@
 
 #include "gpio.h"
 #include "system.h"
+#include "utils.h"
 
 #define SYSCFG0_PINMUX16 0x01c14160u
 #define SYSCFG0_CFGCHIP0 0x01c1417cu
@@ -20,46 +21,21 @@ static const GPIOPin power_hold_gpio = {
     .pin = 12,
 };
 
-static volatile uint32_t *MMIORegister32(uint32_t address)
-{
-    return (volatile uint32_t *)address;
-}
-
-static uint32_t MMIORead32(uint32_t address)
-{
-    return *MMIORegister32(address);
-}
-
-static void MMIOWrite32(uint32_t address, uint32_t value)
-{
-    *MMIORegister32(address) = value;
-}
-
-static void MMIOClearBits32(uint32_t address, uint32_t mask)
-{
-    MMIOWrite32(address, MMIORead32(address) & ~mask);
-}
-
-static void MMIOMaskedWrite32(uint32_t address, uint32_t mask, uint32_t value)
-{
-    MMIOWrite32(address, (MMIORead32(address) & ~mask) | (value & mask));
-}
-
 static void PinmuxSelectFunction(uint32_t pinmuxRegister, uint32_t fieldMask,
                                  uint32_t functionValue)
 {
-    MMIOMaskedWrite32(pinmuxRegister, fieldMask, functionValue);
+    UtilsMaskedWrite32(pinmuxRegister, fieldMask, functionValue);
 }
 
 static void PLLC0UnlockRegisters(void)
 {
     /* CFGCHIP0.PLL_MASTER_LOCK must be clear before PLLC0 MMR writes stick. */
-    MMIOClearBits32(SYSCFG0_CFGCHIP0, CFGCHIP0_PLL_MASTER_LOCK);
+    UtilsClearBits32(SYSCFG0_CFGCHIP0, CFGCHIP0_PLL_MASTER_LOCK);
 }
 
 static void PLLC0UnlockResetControl(void)
 {
-    MMIOMaskedWrite32(PLLC0_RSCTRL, PLLC_RSCTRL_KEY_MASK, PLLC_RSCTRL_KEY_UNLOCK);
+    UtilsMaskedWrite32(PLLC0_RSCTRL, PLLC_RSCTRL_KEY_MASK, PLLC_RSCTRL_KEY_UNLOCK);
 }
 
 static void PLLC0AssertSoftwareReset(void)
@@ -68,7 +44,7 @@ static void PLLC0AssertSoftwareReset(void)
     PLLC0UnlockResetControl();
 
     /* RSCTRL.SWRST is active-low: clearing it requests a software reset. */
-    MMIOClearBits32(PLLC0_RSCTRL, PLLC_RSCTRL_SWRST_RELEASED);
+    UtilsClearBits32(PLLC0_RSCTRL, PLLC_RSCTRL_SWRST_RELEASED);
 }
 
 static void PowerHoldRouteToGpio(void)

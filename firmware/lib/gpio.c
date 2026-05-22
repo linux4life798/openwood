@@ -1,4 +1,5 @@
 #include "gpio.h"
+#include "utils.h"
 
 #define GPIO_BASE 0x01e26000u
 
@@ -16,21 +17,6 @@ const GPIOPin ptt_button_gpio = {
     .bank = 0,
     .pin = 7,
 };
-
-static volatile uint32_t *GPIORegister32(uint32_t address)
-{
-    return (volatile uint32_t *)address;
-}
-
-static uint32_t GPIOReadRegister32(uint32_t address)
-{
-    return *GPIORegister32(address);
-}
-
-static void GPIOWriteRegister32(uint32_t address, uint32_t value)
-{
-    *GPIORegister32(address) = value;
-}
 
 static uint32_t GPIORegisterAddress(GPIOPin gpioPin, uint32_t offset)
 {
@@ -55,18 +41,17 @@ void GPIOConfigureOutput(GPIOPin gpioPin)
     uint32_t direction_register = GPIORegisterAddress(gpioPin, GPIO_DIR_OFFSET);
 
     /* OMAP-L138 GPIO DIR uses 0 for output and 1 for input. */
-    GPIOWriteRegister32(direction_register,
-                        GPIOReadRegister32(direction_register) & ~GPIOPinMask(gpioPin));
+    UtilsClearBits32(direction_register, GPIOPinMask(gpioPin));
 }
 
 void GPIODriveLow(GPIOPin gpioPin)
 {
-    GPIOWriteRegister32(GPIORegisterAddress(gpioPin, GPIO_CLR_DATA_OFFSET),
-                        GPIOPinMask(gpioPin));
+    UtilsWrite32(GPIORegisterAddress(gpioPin, GPIO_CLR_DATA_OFFSET),
+                 GPIOPinMask(gpioPin));
 }
 
 bool GPIOReadPin(GPIOPin gpioPin)
 {
-    return ((GPIOReadRegister32(GPIORegisterAddress(gpioPin, GPIO_IN_DATA_OFFSET)) &
+    return ((UtilsRead32(GPIORegisterAddress(gpioPin, GPIO_IN_DATA_OFFSET)) &
              GPIOPinMask(gpioPin)) != 0);
 }
