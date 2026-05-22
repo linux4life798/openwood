@@ -1,5 +1,3 @@
-#include <stdint.h>
-
 #include "cpu.h"
 #include "rom_functions.h"
 #include "rom_helpers.h"
