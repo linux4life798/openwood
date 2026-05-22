@@ -85,7 +85,7 @@ void DisplayClear(void)
     LcdControllerFillScreen(0);
 }
 
-void DisplayRenderText(char *text)
+void DisplayRenderText(const char *text)
 {
     LcdBlitFrame frame;
     LcdWindowRect window;

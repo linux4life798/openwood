@@ -102,7 +102,7 @@ uint16_t *DisplayFramebufferGetPixelAddress(uint32_t row, uint32_t column);
  *
  * Assumes the framebuffer area being drawn into has already been cleared.
  */
-uint8_t DisplayDrawGlyphToFramebuffer(uint8_t *character, uint32_t column, uint32_t top_margin);
+uint8_t DisplayDrawGlyphToFramebuffer(const uint8_t *character, uint32_t column, uint32_t top_margin);
 
 /**
  * Blits a framebuffer region to the LCD panel.

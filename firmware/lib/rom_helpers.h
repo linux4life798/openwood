@@ -17,7 +17,7 @@
  */
 void InitializePeripherals(void);
 void DisplayClear(void);
-void DisplayRenderText(char *text);
+void DisplayRenderText(const char *text);
 
 /**
  * Returns 1 when the boot ROM's programming-mode button condition is active.
