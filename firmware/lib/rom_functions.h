@@ -35,7 +35,7 @@ typedef struct {
  * Calling this repeatedly will redraw the display, but it will also
  * cause a full initialization of the display each time.
  */
-void PanicDisplayRenderText(char *text);
+void PanicDisplayRenderText(const char text[15]);
 
 /**
  * ROM panic display path: reinitializes the display and shows Init Error [n].

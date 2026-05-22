@@ -24,7 +24,7 @@
 
 #define ARM9_HIGH_VECTOR_BASE                        0xffff0000u
 #define ARM9_VECTOR_COUNT                            8u
-#define ARM9_VECTOR_TABLE_SIZE                       0x40
+#define ARM9_VECTOR_TABLE_SIZE                       (2 * ARM9_VECTOR_COUNT * 4)
 #define ARM9_EXCEPTION_STACK_SIZE                    1024
 
 /*
